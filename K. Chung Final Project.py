@@ -7,13 +7,13 @@ import matplotlib.dates as mdates
 from datetime import datetime, timedelta
 from collections import Counter
 
-# MySQL Connection Setup (Update with your MySQL credentials)
+# MySQL Connection Setup 
 def get_mysql_connection():
     return mysql.connector.connect(
-        host="localhost",        # Your MySQL server (usually localhost)
-        user="root",             # MySQL username
-        password="kc-ac-am-TC24!",     # MySQL password
-        database="hospital_db"   # Your MySQL database
+        host="localhost",        
+        user="root",             
+        password="kc-ac-am-TC24!",     
+        database="hospital_db"   
     )
 
 # Function to create the database if it doesn't exist
@@ -37,7 +37,7 @@ def create_database():
         );
         """)
 
-        # Create the program_run_log table to track each successful program launch
+        # Create the program_run_log table to track each time breast milk is verified
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS program_run_log (
             log_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -62,7 +62,7 @@ def create_program_run_table():
         connection = get_mysql_connection()
         cursor = connection.cursor()
 
-        # Drop the table if it exists (to avoid the old version causing issues)
+        # Drop the table if it exists
         cursor.execute("DROP TABLE IF EXISTS program_run_history;")
 
         # Create the table with the proper columns
@@ -81,7 +81,7 @@ def create_program_run_table():
     except mysql.connector.Error as err:
         messagebox.showerror("Database Error", f"Error creating table: {err}")
 
-# Function to log program run event (verification by nurse)
+# Function to log verification
 def log_program_run(username):
     try:
         connection = get_mysql_connection()
@@ -100,7 +100,6 @@ def log_program_run(username):
     except mysql.connector.Error as err:
         messagebox.showerror("Database Error", f"Error logging program run: {err}")
 
-# Function to log the program's successful startup in the program_run_log table
 def log_program_start():
     try:
         connection = get_mysql_connection()
@@ -125,7 +124,7 @@ def plot_feed_graph():
         connection = get_mysql_connection()
         cursor = connection.cursor(dictionary=True)
 
-        # Query to get the username and run_time data (verifications by second nurse)
+        # Get the username and run_time data (verifications by second nurse)
         query = "SELECT username, run_time FROM program_run_history ORDER BY run_time ASC"
         cursor.execute(query)
         program_runs = cursor.fetchall()
@@ -134,7 +133,7 @@ def plot_feed_graph():
             messagebox.showinfo("No Data", "No program run data available.")
             return
 
-        # Filter out only the second nurse's username for plotting
+        # Only the second nurse's username for plotting
         second_nurse_username = 'nurse2'  # Replace with the actual username for the second nurse
         second_nurse_runs = [run for run in program_runs if run['username'] == second_nurse_username]
 
@@ -142,22 +141,18 @@ def plot_feed_graph():
             messagebox.showinfo("No Data", f"No data available for {second_nurse_username}.")
             return
 
-        # Prepare the data for plotting
         run_times = [run['run_time'] for run in second_nurse_runs]
         usernames = [run['username'] for run in second_nurse_runs]  # This will be all the second nurse's username
 
         cursor.close()
         connection.close()
 
-        # Create a line plot with the second nurse's username on the y-axis and run time on the x-axis
         plt.plot(run_times, usernames, marker='o', linestyle='-', color='skyblue', markersize=5)
 
-        # Set title and labels
         plt.title(f"Breast Milk Verification Log", fontsize=16)
         plt.xlabel("Verification Time", fontsize=12)
         plt.ylabel("Verifying Nurse", fontsize=12)
 
-        # Format the x-axis to display the dates and times clearly
         plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
         plt.gca().xaxis.set_major_locator(mdates.HourLocator(interval=1))
         plt.gcf().autofmt_xdate()  # Rotate the x-axis labels for better visibility
@@ -233,9 +228,8 @@ entry_password.pack(pady=5)
 verify_button = tk.Button(root, text="Verify", command=on_verify)
 verify_button.pack(pady=20)
 
-create_database()  # Ensure database exists
-create_program_run_table()  # Ensure the table is created correctly
-log_program_start()  # Log the program's successful start
+create_database()  
+create_program_run_table() 
+log_program_start()  
 
-# Run the application
 root.mainloop()
